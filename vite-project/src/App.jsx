@@ -1,13 +1,15 @@
-import ImageBoard from "./Components/ImageBoard"
-import Navbar from "./Components/Navbar"
+import ImageBoard from "./Components/ImageBoard";
+import Navbar from "./Components/Navbar";
+import React, { useState } from "react";
 
 const App = () => {
+  const [query, setQuery] = useState("dog");
   return (
     <div>
-      <Navbar/>
-      <ImageBoard/>
+      <Navbar setQuery={setQuery} />
+      <ImageBoard query={query} />
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;
