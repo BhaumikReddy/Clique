@@ -1,31 +1,79 @@
-import { useEffect, useState } from "react"
-import axios from "axios"
+import { useEffect, useState } from "react";
+import axios from "axios";
+import "./style.scss";
+import InfiniteScroll from "react-infinite-scroll-component";
+import ClipLoader from "react-spinners/ClipLoader";
 
-
-const ImageBoard = () => {
-  
-  const [data,setData]=useState([])
-  const getPhotos=async () => {
-    const res = await axios.get("https://api.pexels.com/v1/photos/2014422", 
-    {
-      headers: {
-        "Authorization": "i5APzibKEg8kSrqiPxrT3sEMjBKQnlmH0zYodm545kOleiizMvpHLFCU"
+const ImageBoard = ({ query }) => {
+  const [data, setData] = useState({});
+  const [page, setPage] = useState(1);
+  const getPhotos = async () => {
+    const res = await axios.get(
+      `https://api.pexels.com/v1/search?query=${query}&page=${page}`,
+      {
+        headers: {
+          Authorization:
+            "i5APzibKEg8kSrqiPxrT3sEMjBKQnlmH0zYodm545kOleiizMvpHLFCU",
+        },
       }
-    })
-    console.log(res)
-    setData(res.data)
-  }
+    );
+    setData(res?.data);
+    setPage((prev) => prev + 1);
+  };
+
+  const getNextPhotos = async () => {
+    const res = await axios.get(
+      `https://api.pexels.com/v1/search?query=${query}&page=${page}`,
+      {
+        headers: {
+          Authorization:
+            "i5APzibKEg8kSrqiPxrT3sEMjBKQnlmH0zYodm545kOleiizMvpHLFCU",
+        },
+      }
+    );
+    setData({
+      ...data,
+      photos: [...data?.photos, ...res?.data?.photos],
+    });
+    setPage((prev) => prev + 1);
+  };
 
   useEffect(() => {
+    setPage(1);
+    setData(null);
     getPhotos();
-  },[])
+  }, [query]);
+
+  console.log(data);
 
   return (
-    <div>
-    <h2 className="text-center">Explore <span className="badge rounded-pill bg-dark">Images</span></h2>  
-    <img src={data?.src?.landscape} />    
+    <div className="imageBoard">
+      <div className="heading">
+        Explore <span>Images</span>
+      </div>
+      {data?.photos?.length > 0 && (
+        <InfiniteScroll
+          className="images"
+          dataLength={data?.photos?.length}
+          hasMore={page <= data?.total_results / data?.per_page}
+          next={getNextPhotos}
+          loader={
+            <ClipLoader
+              size={150}
+              aria-label="Loading Spinner"
+              data-testid="loader"
+            />
+          }
+        >
+          {data?.photos?.map((photo, id) => (
+            <div className="image" key={id}>
+              <img src={photo?.src?.landscape} className="w-full" />
+            </div>
+          ))}
+        </InfiniteScroll>
+      )}
     </div>
-  )
-}
+  );
+};
 
-export default ImageBoard
+export default ImageBoard;
